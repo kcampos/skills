@@ -24,6 +24,7 @@ conventions for maintaining data integrity and enabling synthesis across a body 
 
 At the start of each project, the following should be available in the system prompt or
 confirmed with the user. If any are missing, ask before proceeding with write operations.
+
 ```
 Research Hub Page ID:   <hub_page_id>
 Sources DS ID:          collection://<sources_ds_id>
@@ -64,6 +65,7 @@ Core fields: `Note` (title), `Note Type` (Insight/Question/Argument/Connection/C
 ## Order of Operations (Critical)
 
 Every write command must follow this sequence to maintain relational integrity:
+
 ```
 1. PEOPLE first    — confirm or create the People entry
 2. SOURCES second  — confirm or create the Source, linking Author → People
@@ -81,6 +83,7 @@ list of available `Topics` options. Use existing tags whenever they fit.
 
 Only create new tags when no existing tag adequately covers the content. When adding
 new tags, **sync them to all four databases simultaneously** using:
+
 ```
 ALTER COLUMN "Topics" SET MULTI_SELECT('<existing_tag_1>', '<existing_tag_2>', ..., 'NewTag':color)
 ```
@@ -207,6 +210,7 @@ Flag gaps or underrepresented areas.
 ## Schema Modification Protocol
 
 When altering multi-select fields on existing databases:
+
 ```sql
 -- CORRECT: list existing options without colors, new options with colors
 ALTER COLUMN "Topics" SET MULTI_SELECT(
@@ -230,14 +234,174 @@ Then retry the correct `ALTER COLUMN` on the intended field.
 
 ---
 
+## Research Hub Page
+
+The Research Hub is a Notion page that serves as the documentation and navigation center
+for the entire research system. It links to all four databases and provides a command
+reference guide for the user.
+
+### When to create it
+
+Create the Research Hub page when setting up a new research project from scratch, or
+when the user asks for one. It should be created **after** all four databases exist,
+since it embeds links to them.
+
+### Structure
+
+The Hub page should follow this structure exactly:
+
+```markdown
+# 🔬 Research Hub
+Your persistent research companion. Drop breadcrumbs as you work — quotes, notes,
+people — and interrogate the full body of work any time.
+
+---
+
+## 🗄️ Your Databases
+[inline links to all four databases: Sources, Quotes, Notes, People]
+
+---
+
+## 🧭 Command Reference
+
+### `/quote` — Save a Direct Quote
+Captures a verbatim quote with full citation info into the 💬 Quotes database.
+
+**Minimal usage:**
+/quote "The limits of my language mean the limits of my world." — Wittgenstein, Tractatus, p. 68
+
+**Full usage:**
+/quote
+text: "The limits of my language mean the limits of my world."
+source: Tractatus Logico-Philosophicus
+author: Ludwig Wittgenstein
+page: 68
+chapter: 5.6
+topics: Theory, Identity
+commentary: Central to the argument about epistemic boundaries
+
+**What Claude stores:** Quote text · Source (linked) · Author · Page number ·
+Chapter · Topics · Your commentary · Date
+
+**Auto-behavior:** When a /quote includes an author name, Claude automatically
+checks the 👤 People database. If no entry exists, Claude researches them via
+web search and creates a profile linked to the quote. No extra command needed.
+
+---
+
+### `/source` — Register a Source
+Adds a book, article, or paper to the 📚 Sources database.
+
+**Usage:**
+/source
+title: Discipline and Punish
+author: Michel Foucault
+year: 1975
+type: Book
+publisher: Gallimard
+
+**Auto-behavior:** Claude checks People for the author and creates a profile
+if one doesn't exist.
+
+---
+
+### `/note` — Save a Research Insight
+Captures your own thoughts into the 📝 Notes database.
+
+**Minimal usage:**
+/note The framing of "discovery" erases indigenous knowledge systems entirely.
+
+**Full usage:**
+/note
+text: The framing of "discovery" erases indigenous knowledge systems entirely.
+type: Critique
+source: The Invention of Science (Wootton)
+page: 14
+topics: History, Power, Ethics
+
+**Note types:** Insight · Question · Argument · Connection · Critique · Summary
+
+---
+
+### `/person` — Research and Save a Person
+Researches a named individual and saves a structured profile to 👤 People.
+Also triggered automatically by /quote and /source.
+
+**Usage:**
+/person Michel Foucault
+/person
+name: Michel Foucault
+relevance: His concept of biopower is central to my argument in Chapter 3
+topics: Power, Theory
+
+---
+
+### `/thread [topic]` — Organize Around a Theme
+Pulls all quotes, notes, and people tagged with a topic and synthesizes them.
+
+**Usage:**
+/thread Power
+/thread Nationalism
+
+---
+
+### `/by [source title]` — Explore a Source
+Pulls all quotes and notes linked to a specific source.
+
+**Usage:**
+/by Discipline and Punish
+
+---
+
+### `/about [person name]` — Explore a Person's Footprint
+Pulls everything connected to a person across all databases.
+
+**Usage:**
+/about Hannah Arendt
+
+---
+
+### `/synthesize` — Full Research Synthesis
+Queries all databases and produces a structured thematic overview.
+
+**Usage:**
+/synthesize
+/synthesize around the argument that [X]
+
+---
+
+## 💡 Tips
+- **Tags are your threads.** Use Topics multi-select consistently across all entries.
+- **Minimal inputs are fine.** Claude will infer what it can.
+- **People are auto-created.** Any /quote or /source with an author triggers
+  automatic People profile creation if one doesn't exist.
+- **You can add custom topics.** Ask Claude to add new tags any time — they sync
+  across all four databases.
+- **Every entry is linked.** Sources, Quotes, Notes, and People all reference each
+  other, so /thread queries traverse the full graph.
+
+---
+*Research Hub built by Claude · [Month Year]*
+```
+
+### How to create it in Notion
+
+Use `notion-create-pages` with the hub page as a standalone workspace page (no parent,
+or under a user-specified parent). Embed the four database links using Notion's
+`<database url="...">` inline syntax. After creation, store the resulting page ID
+in the project's system prompt or memory as `hub_page_id`.
+
+---
+
 ## Notes on Reuse Across Projects
 
 This skill is intentionally generic. To adapt it for a new research project:
 
-1. Confirm or create the four-database structure (People, Sources, Quotes, Notes)
-2. Note the data source collection IDs from each database's `<data-source url="...">` tag
-3. Store those IDs in the project's system prompt or memory
-4. The topic taxonomy starts empty or inherited — always query before tagging
+1. Create the four databases (People, Sources, Quotes, Notes) with the schema above
+2. Create the Research Hub page, embedding links to all four databases
+3. Note the data source collection IDs from each database's `<data-source url="...">` tag
+4. Store the Hub page ID and all four DS IDs in the project's system prompt or memory
+5. The topic taxonomy starts empty — always query before tagging
 
 The skill's logic, order of operations, and behavioral rules apply regardless of
 the research domain.
