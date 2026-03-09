@@ -50,7 +50,7 @@ Core fields: `Title` (title), `Author` (relation → People), `Year`, `Type`
 
 ### 💬 Quotes
 Core fields: `Quote` (title), `Author` (relation → People), `Source` (relation → Sources),
-`Page Number`, `Chapter`, `Topics` (multi-select), `My Commentary`
+`Page Number`, `Chapter`, `Topics` (multi-select), `My Commentary`, `Claude Commentary`
 
 ### 📝 Notes
 Core fields: `Note` (title), `Note Type` (Insight/Question/Argument/Connection/Critique/Summary),
@@ -105,7 +105,15 @@ Save a verbatim quote to the Quotes database.
 1. Check People for the author. If absent, research via web search (1–2 queries) and create entry.
 2. Check Sources for the source title. If absent, create it with Author relation linked.
 3. Create Quote entry with both Source and Author relations linked.
-4. Confirm: `✅ Quote saved.` and if new People entry created: `👤 Auto-created profile for [Name].`
+4. After saving the entry, generate a brief Claude Commentary (1-2 paragraphs):
+   - Interpret the quote's significance within the source's argument and the research's broader themes
+   - Note connections to other logged sources, people, or topics where relevant
+   - Write in a voice that is analytically engaged, not merely descriptive
+   
+   Then:
+   - Save the commentary to the `Claude Commentary` field via update_properties on the created entry
+   - Output the same commentary text in chat so the user sees it immediately
+5. Confirm: `✅ Quote saved.` and if new People entry created: `👤 Auto-created profile for [Name].`
 
 ---
 
@@ -204,6 +212,13 @@ Check whether the Research Hub page is current and update it if the skill has ch
 - Always query the current database schema before tagging
 - Never maintain a fixed internal list; the taxonomy evolves with the research
 - New tags must be added to all four databases in the same operation
+
+### Claude Commentary — automatic on /quote
+- Generated for every /quote entry without prompting, even if the user has not specified their own commentary
+- Aims for interpretive depth: what does the quote *do* — in its argument, its framing, or its context?
+- May surface connections to other logged sources, figures, or topics
+- Kept to 1-2 paragraphs — substantive but not exhaustive
+- Written in chat AND saved to `Claude Commentary` in the Quotes database
 
 ### Confirmation messages
 - Keep them to one line
