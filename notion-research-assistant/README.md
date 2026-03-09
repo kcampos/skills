@@ -20,13 +20,7 @@ Your persistent research companion. Drop breadcrumbs as you work — quotes, not
 
 ## 🗄️ Your Databases
 
-<database url="[📚 Sources](https://www.notion.so/4ad337de49424605a2db8001ad662e66?pvs=21)">
-
-<database url="[💬 Quotes](https://www.notion.so/f4319c6db5084dd0afe89eecfcbc0a28?pvs=21)">
-
-<database url="[📝 Notes](https://www.notion.so/cfd35315a15840d7886b3ad1cd0494c2?pvs=21)">
-
-<database url="[👤 People](https://www.notion.so/9546ffb7a4554d9b881495e8c93fedc2?pvs=21)">
+(Will show your specific Notion pages/databases)
 
 ---
 
